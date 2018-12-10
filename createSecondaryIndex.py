@@ -1,5 +1,5 @@
 import pandas as pd
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import ConfigParser
 from sqlalchemy import create_engine
 import argparse
 
@@ -46,14 +46,11 @@ def parse_table(table):
     except Exception as e:
         logger.debug(e)
 
-
     # read data
     df = pd.read_sql(f"select * from {table} limit 10", conn);
     # df.to_csv("product.csv", index=False)
     # df = pd.read_csv("product.csv")
     # df.info()
-
-    # print("Dtypes:", df.dtypes)
 
     # Secondary Index schema
     secondary_index = pd.DataFrame([], columns=["key", "completion", "column", "dataset"])
@@ -64,9 +61,8 @@ def parse_table(table):
         secondary_index.loc[i] = [x, x, "", table]
         i+=1
 
-    catCols = df.select_dtypes(include=object).columns
-
     # iterate over categorical columns and add each value to index dataframe
+    catCols = df.select_dtypes(include=object).columns
     for column in catCols:
         distinct_values = df[column].unique()
         for value in distinct_values:
@@ -83,12 +79,9 @@ def parse_table(table):
     except Exception as e:
         logger.debug(f"Unable to store index due to: {e}")
 
-def getArguments():
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("table", help="name of table")
-    return parser
-
-if __name__ == '__main__':
-    parser = getArguments()
     args = parser.parse_args()
     parse_table(args.table)
+    
